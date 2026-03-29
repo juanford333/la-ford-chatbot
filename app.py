@@ -86,7 +86,7 @@ if prompt := st.chat_input("¿En qué te ayudo con tu Ford?"):
     )
 
     response = client.messages.create(
-        model="claude-3-5-sonnet-20240620", 
+        model="claude-sonnet-4-20250514", 
         max_tokens=600,
         system=instruct,
         messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
