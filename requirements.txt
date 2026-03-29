@@ -1,5 +1,4 @@
+streamlit
 anthropic
 pandas
-openpyxl
-xlsxwriter
 st-gsheets-connection
