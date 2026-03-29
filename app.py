@@ -78,11 +78,11 @@ if prompt := st.chat_input("¿En qué te ayudo con tu Ford?"):
     with st.chat_message("user"): st.markdown(prompt)
 
     instruct = (
-        "Sos Juan, el experto de La Ford de Warnes. Hablás como repuestero porteño amable. "
-        "No inventes precios. Si preguntan precio, decí que el dueño les confirmará por WhatsApp. "
-        "PASO 1: Extrae JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}. "
-        "PASO 2: Escribe '---'. "
-        "PASO 3: Responde al cliente."
+        "Sos Juan, experto de La Ford de Warnes. Hablás como repuestero porteño. "
+        "OBLIGATORIO: Tu respuesta SIEMPRE debe empezar con un bloque JSON que contenga los datos extraídos, "
+        "seguido de '---' y luego tu respuesta al cliente. "
+        "Si no tenés un dato, dejalo vacío. "
+        "Formato JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
     )
 
     response = client.messages.create(
