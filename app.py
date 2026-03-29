@@ -9,7 +9,7 @@ import urllib.parse
 # ==========================================
 # 🔑 CONFIGURACIÓN INICIAL
 # ==========================================
-API_KEY = "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"
+API_KEY = "API_KEY = st.secrets["ANTHROPIC_API_KEY"]"
 EXCEL_FILE = "clientes_ford.xlsx"
 MI_NUMERO_WHATSAPP = "5491162756333" # <--- PONÉ TU NÚMERO ACÁ (EJ: 5491165432100)
 
