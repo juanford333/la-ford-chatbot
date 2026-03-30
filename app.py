@@ -11,7 +11,7 @@ import json
 API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 EXCEL_FILE = "clientes_ford.xlsx"
 MI_NUMERO_WHATSAPP = "5491162756333"
-https://docs.google.com/spreadsheets/d/1clGVOcDcgoGynxE8IgNdmJUhzPT0UvE-1gp7QKl428k/edit?gid=0#gid=0
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k/edit?gid=0#gid=0"
 client = anthropic.Anthropic(api_key=API_KEY)
 
 st.set_page_config(page_title="La Ford de Warnes", layout="wide", page_icon="🛞")
