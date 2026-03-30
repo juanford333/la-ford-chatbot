@@ -9,7 +9,7 @@ from streamlit_gsheets import GSheetsConnection
 # 🔑 CONFIGURACIÓN INICIAL
 # ==========================================
 API_KEY = st.secrets["ANTHROPIC_API_KEY"]
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k/edit#gid=0"
+
 MI_NUMERO_WHATSAPP = "5491162756333"
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k/edit"
 client = anthropic.Anthropic(api_key=API_KEY)
