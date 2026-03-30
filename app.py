@@ -10,13 +10,13 @@ from streamlit_gsheets import GSheetsConnection
 # ==========================================
 API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k/edit"
+MI_NUMERO_WHATSAPP = "5491162756333"
 
 client = anthropic.Anthropic(api_key=API_KEY)
 
 st.set_page_config(page_title="La Ford de Warnes", layout="wide", page_icon="🛞")
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# Título
 st.markdown('<h1 style="color:#003478;text-align:center;">🛞 La Ford de Warnes</h1>', unsafe_allow_html=True)
 
 if 'form_data' not in st.session_state:
@@ -38,7 +38,7 @@ def guardar_en_google_sheets():
         conn.update(spreadsheet=SPREADSHEET_URL, data=df_final)
         return True
     except Exception as e:
-        st.error(f"Falla de Permisos: Asegurate de haber compartido la planilla con el mail del bot. Error: {e}")
+        st.error(f"Error al guardar: {e}")
         return False
 
 with st.sidebar:
@@ -51,9 +51,8 @@ with st.sidebar:
     st.session_state.form_data["con"] = st.text_area("Pedido", value=st.session_state.form_data["con"])
     if st.button("💾 GUARDAR CONSULTA", use_container_width=True, type="primary"):
         if guardar_en_google_sheets():
-            st.success("✅ ¡Guardado en Drive!")
+            st.success("✅ ¡Guardado!")
 
-# CHAT
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
 
@@ -61,10 +60,10 @@ if prompt := st.chat_input("Escribí acá..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
-    instruct = "Sos Juan de La Ford. SIEMPRE JSON primero, luego '---'. JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
+    instruct = "Sos Juan de La Ford. SIEMPRE empezá con JSON, luego '---'. JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
 
     response = client.messages.create(
-        model="claude-3-5-sonnet-latest", 
+        model="claude-sonnet-4-20250514", 
         max_tokens=800,
         system=instruct,
         messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
