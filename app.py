@@ -5,17 +5,13 @@ from datetime import datetime
 import json
 from streamlit_gsheets import GSheetsConnection
 
-# ==========================================
-# 🔑 CONFIGURACIÓN INICIAL
-# ==========================================
+# CONFIGURACIÓN
 API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k/edit"
-MI_NUMERO_WHATSAPP = "5491162756333"
 
 client = anthropic.Anthropic(api_key=API_KEY)
 
-st.set_page_config(page_title="La Ford de Warnes", layout="wide", page_icon="🛞")
-# Conexión a Google Sheets
+st.set_page_config(page_title="La Ford de Warnes", layout="wide")
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 st.markdown('<h1 style="color:#003478;text-align:center;">🛞 La Ford de Warnes</h1>', unsafe_allow_html=True)
@@ -50,29 +46,29 @@ with st.sidebar:
     st.session_state.form_data["añ"] = st.text_input("Año", value=st.session_state.form_data["añ"])
     st.session_state.form_data["mot"] = st.text_input("Motor", value=st.session_state.form_data["mot"])
     st.session_state.form_data["con"] = st.text_area("Pedido", value=st.session_state.form_data["con"])
-    if st.button("💾 GUARDAR CONSULTA", use_container_width=True, type="primary"):
+    if st.button("💾 GUARDAR CONSULTA", type="primary"):
         if guardar_en_google_sheets():
             st.success("✅ ¡Guardado!")
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
 
-if prompt := st.chat_input("Escribí acá..."):
+if prompt := st.chat_input("¿Qué repuesto buscás?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
-    instruct = "Sos Juan de La Ford. SIEMPRE empezá con JSON, luego '---'. JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
+    instruct = "Sos Juan de La Ford. Hablás como repuestero de Warnes. SIEMPRE JSON primero, luego '---'. JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514", 
-        max_tokens=800,
+        max_tokens=600,
         system=instruct,
         messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
     )
     
-    full_text = response.content[0].text
-    if "---" in full_text:
-        partes = full_text.split("---", 1)
+    texto = response.content[0].text
+    if "---" in texto:
+        partes = texto.split("---", 1)
         try:
             d = json.loads(partes[0].strip())
             if d.get("nombre"): st.session_state.form_data["nom"] = d["nombre"]
@@ -82,10 +78,10 @@ if prompt := st.chat_input("Escribí acá..."):
             if d.get("motor"): st.session_state.form_data["mot"] = d["motor"]
             if d.get("repuesto"): st.session_state.form_data["con"] = d["repuesto"]
         except: pass
-        res_visual = partes[1].strip()
-    else: res_visual = full_text
+        res_cli = partes[1].strip()
+    else: res_cli = texto
 
     with st.chat_message("assistant"):
-        st.markdown(res_visual)
-        st.session_state.messages.append({"role": "assistant", "content": res_visual})
+        st.markdown(res_cli)
+        st.session_state.messages.append({"role": "assistant", "content": res_cli})
     st.rerun()
