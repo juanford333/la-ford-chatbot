@@ -6,12 +6,13 @@ import json
 from streamlit_gsheets import GSheetsConnection
 
 # ==========================================
-# 🔑 CONFIGURACIÓN INICIAL
+# 🔑 CONFIGURACIÓN
 # ==========================================
 API_KEY = st.secrets["ANTHROPIC_API_KEY"]
-
+# ID FIJO DE TU PLANILLA (ESTO NO DA ERROR 404)
+SPREADSHEET_ID = "1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k"
 MI_NUMERO_WHATSAPP = "5491162756333"
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1ClGVOcDcgogynxE8lgNdmJUhzP10UvE-1gpjQKl428k/edit"
+
 client = anthropic.Anthropic(api_key=API_KEY)
 
 st.set_page_config(page_title="La Ford de Warnes", layout="wide", page_icon="🛞")
@@ -24,7 +25,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Inicializar estados
 if 'form_data' not in st.session_state:
     st.session_state.form_data = {"nom": "", "pat": "", "mod": "", "añ": "", "mot": "", "con": ""}
 if "messages" not in st.session_state:
@@ -33,24 +33,26 @@ if "messages" not in st.session_state:
 def guardar_en_google_sheets():
     d = st.session_state.form_data
     if not (d['nom'] or d['pat']) or not d['con']:
-        st.warning("⚠️ Faltan datos críticos para guardar.")
+        st.warning("⚠️ Faltan datos en la ficha.")
         return False
     try:
-        df_existente = conn.read(spreadsheet=SPREADSHEET_URL, ttl=0)
+        # CONEXIÓN DIRECTA POR ID
+        df_existente = conn.read(spreadsheet=SPREADSHEET_ID, ttl=0)
+        
         fecha_reg = datetime.now().strftime("%d/%m/%Y %H:%M")
         nueva_fila = pd.DataFrame([[
             fecha_reg, str(d['nom']).upper(), str(d['pat']).upper(), "",
             str(d['mod']).upper(), str(d['añ']), str(d['mot']).upper(), 
             str(d['con']).upper(), "CONSULTA"
         ]], columns=["FECHA", "CLIENTE", "PATENTE", "VIN/CHASIS", "MODELO", "AÑO", "MOTOR", "REPUESTOS/CONSULTA", "ESTADO"])
+
         df_final = pd.concat([df_existente, nueva_fila], ignore_index=True)
-        conn.update(spreadsheet=SPREADSHEET_URL, data=df_final)
+        conn.update(spreadsheet=SPREADSHEET_ID, data=df_final)
         return True
     except Exception as e:
-        st.error(f"Error al guardar: {e}")
+        st.error(f"Error de conexión: {e}")
         return False
 
-# BARRA LATERAL (FICHA)
 with st.sidebar:
     st.header("📋 Ficha del Cliente")
     st.session_state.form_data["nom"] = st.text_input("Nombre", value=st.session_state.form_data["nom"])
@@ -62,24 +64,16 @@ with st.sidebar:
     
     if st.button("💾 GUARDAR CONSULTA", use_container_width=True, type="primary"):
         if guardar_en_google_sheets():
-            st.success("✅ ¡Guardado en Drive!")
+            st.success("✅ ¡GRABADO!")
 
-# CHAT
 for m in st.session_state.messages:
     with st.chat_message(m["role"]): st.markdown(m["content"])
 
-if prompt := st.chat_input("Escribí acá tu pedido..."):
+if prompt := st.chat_input("Escribí acá..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
-    # Instrucción ultra-clara para que Juan llene la ficha
-    instruct = (
-        "Sos Juan de La Ford. Tu misión es extraer datos para una ficha. "
-        "SIEMPRE empezá tu respuesta con un bloque JSON que contenga: "
-        "nombre, patente, modelo, año, motor, pedido. "
-        "Luego poné '---' y saludá al cliente. "
-        "Ejemplo: {\"nombre\":\"Juan\",\"patente\":\"ABC123\",...} --- Hola Carlos..."
-    )
+    instruct = "Sos Juan de La Ford. SIEMPRE empezá con JSON, luego '---'. JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514", 
@@ -88,26 +82,18 @@ if prompt := st.chat_input("Escribí acá tu pedido..."):
         messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
     )
     
-    full_text = response.content[0].text
-    
-    # Procesar JSON y Texto
-    if "---" in full_text:
-        partes = full_text.split("---", 1)
+    texto = response.content[0].text
+    if "---" in texto:
+        partes = texto.split("---", 1)
         try:
-            data_ext = json.loads(partes[0].strip())
-            # Actualizar ficha lateral
-            if data_ext.get("nombre"): st.session_state.form_data["nom"] = data_ext["nombre"]
-            if data_ext.get("patente"): st.session_state.form_data["pat"] = data_ext["patente"]
-            if data_ext.get("modelo"): st.session_state.form_data["mod"] = data_ext["modelo"]
-            if data_ext.get("año"): st.session_state.form_data["añ"] = data_ext["año"]
-            if data_ext.get("motor"): st.session_state.form_data["mot"] = data_ext["motor"]
-            if data_ext.get("pedido"): st.session_state.form_data["con"] = data_ext["pedido"]
+            d = json.loads(partes[0].strip())
+            for k, v in [("nom","nombre"),("pat","patente"),("mod","modelo"),("añ","año"),("mot","motor"),("con","repuesto")]:
+                if d.get(v): st.session_state.form_data[k] = d[v]
         except: pass
-        res_visual = partes[1].strip()
-    else:
-        res_visual = full_text
+        res_cli = partes[1].strip()
+    else: res_cli = texto
 
     with st.chat_message("assistant"):
-        st.markdown(res_visual)
-        st.session_state.messages.append({"role": "assistant", "content": res_visual})
+        st.markdown(res_cli)
+        st.session_state.messages.append({"role": "assistant", "content": res_cli})
     st.rerun()
