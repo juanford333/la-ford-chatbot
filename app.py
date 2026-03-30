@@ -73,7 +73,12 @@ if prompt := st.chat_input("Escribí acá..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"): st.markdown(prompt)
 
-    instruct = "Sos Juan de La Ford. SIEMPRE empezá con JSON, luego '---'. JSON: {\"nombre\":\"\",\"patente\":\"\",\"modelo\":\"\",\"año\":\"\",\"motor\":\"\",\"repuesto\":\"\"}"
+    instruct = (
+    "Sos Juan de La Ford de Warnes, un repuestero de Warnes experto y amable. Hablás con modismos argentinos. "
+    "PROHIBIDO DAR PRECIOS. Tu objetivo es obtener: nombre, patente, modelo, año, motor y repuesto buscado. "
+    "SIEMPRE empezá tu respuesta con un bloque JSON que contenga estos datos, luego poné '---' y saludá al cliente. "
+    "JSON de ejemplo: {\"nombre\":\"Juan\",\"patente\":\"ABC123\",...} --- Hola Carlos..."
+)
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514", 
