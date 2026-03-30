@@ -15,6 +15,7 @@ MI_NUMERO_WHATSAPP = "5491162756333"
 client = anthropic.Anthropic(api_key=API_KEY)
 
 st.set_page_config(page_title="La Ford de Warnes", layout="wide", page_icon="🛞")
+# Conexión a Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 st.markdown('<h1 style="color:#003478;text-align:center;">🛞 La Ford de Warnes</h1>', unsafe_allow_html=True)
